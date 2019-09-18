@@ -53,6 +53,7 @@ parts:
       - libuuid1
       - libstdc++6
       - libpcre3
+      - python3-jsonschema
     build-packages:
       - build-essential
       - iputils-ping
@@ -72,6 +73,14 @@ parts:
     source-tag: ${SNAPCRAFT_PROJECT_VERSION}
     requirements: [requirements.txt]
     constraints: [upper-constraints.txt]
+    filesets:
+      exclude-conflicting-files:
+        - -lib/python3.6/site-packages/jsonschema
+      include-all:
+        - ./*
+    stage:
+      - $include-all
+      - $exclude-conflicting-files
 
   rally-openstack:
     # python3 compatibility patches for tempest verifier
@@ -107,6 +116,25 @@ parts:
     # take a specific tempest version
     source-tag: '21.0.0'
     requirements: [requirements.txt]
+    filesets:
+      exclude-conflicting-files:
+        - -lib/python3.6/site-packages/dateutil
+      include-all:
+        - ./*
+    stage:
+      - $include-all
+      - $exclude-conflicting-files
+
+  tempest-dump:
+    after: [rally, tempest]
+    plugin: dump
+    source: https://github.com/openstack/tempest
+    source-type: git
+    source-tag: '21.0.0'
+    override-stage: |
+      :
+    override-build: |
+      :
     # rally expects tempest source with .git present
     # which means we have to clone the repo into the
     # target directory, including the hidden dir
@@ -119,8 +147,8 @@ parts:
     plugin: dump
     source: ./
     organize:
-            rallyinit.sh: bin/rallyinit.sh
-            tempestinit.sh: bin/tempestinit.sh
+      rallyinit.sh: bin/rallyinit.sh
+      tempestinit.sh: bin/tempestinit.sh
     stage:
-            - bin/*
-            - 2018.02-test-list.txt
+      - bin/*
+      - 2018.02-test-list.txt
