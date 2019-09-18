@@ -15,6 +15,7 @@ environment:
   # https://github.com/ubuntu/ubuntu-make/issues/536#issuecomment-382112564
   # https://www.python.org/dev/peps/pep-0420/
   PYTHONHOME: $SNAP/usr
+  SNAP_SHM_PREFIX: "snap.${SNAP_NAME}."
 
 apps:
   bsrally:
@@ -152,3 +153,14 @@ parts:
     stage:
       - bin/*
       - 2018.02-test-list.txt
+
+  libc-shm-shim:
+      plugin: nil
+      override-build: |
+          snap download libc-shm-shim --beta
+          unsquashfs -f -d ${SNAPCRAFT_PART_INSTALL} libc-shm-shim_*.snap
+      build-packages:
+          - squashfs-tools
+      stage:
+          - -meta
+          - -snap
