@@ -82,6 +82,12 @@ parts:
     stage:
       - $include-all
       - $exclude-conflicting-files
+    override-prime: |
+      snapcraftctl prime
+      echo "Compiling pyc files..."
+      ${SNAPCRAFT_PRIME}/usr/bin/python3 -m compileall \
+       -q ${SNAPCRAFT_PRIME} \
+       -x testtools
 
   rally-openstack:
     # python3 compatibility patches for tempest verifier
@@ -90,7 +96,6 @@ parts:
     build-packages:
       - build-essential
       - iputils-ping
-      - libcomerr2
       - libgcc1
       - libffi-dev
       - libpq-dev
@@ -108,6 +113,12 @@ parts:
     constraints: [upper-constraints.txt]
     stage-packages:
       - git # for tempest repository cloning
+    override-prime: |
+      snapcraftctl prime
+      echo "Compiling pyc files..."
+      ${SNAPCRAFT_PRIME}/usr/bin/python3 -m compileall \
+       -q ${SNAPCRAFT_PRIME} \
+       -x 'testtools|import-zips.py|hg-to-git'
 
   tempest:
     after: [rally]
@@ -125,6 +136,12 @@ parts:
     stage:
       - $include-all
       - $exclude-conflicting-files
+    override-prime: |
+      snapcraftctl prime
+      echo "Compiling pyc files..."
+      ${SNAPCRAFT_PRIME}/usr/bin/python3 -m compileall \
+       -q ${SNAPCRAFT_PRIME} \
+       -x testtools
 
   tempest-dump:
     after: [rally, tempest]
@@ -140,8 +157,8 @@ parts:
     # which means we have to clone the repo into the
     # target directory, including the hidden dir
     override-prime: |
-      rm -fr $SNAPCRAFT_PRIME/tempest
-      git clone $SNAPCRAFT_PART_SRC $SNAPCRAFT_PRIME/tempest
+      rm -fr ${SNAPCRAFT_PRIME}/tempest
+      git clone ${SNAPCRAFT_PART_SRC} ${SNAPCRAFT_PRIME}/tempest
 
   copy-parts:
     after: [tempest]
