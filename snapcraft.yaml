@@ -32,6 +32,12 @@ apps:
     plugs: [home, network, network-bind]
 
 parts:
+  patches:
+    source: patches
+    plugin: dump
+    prime:
+      - -*
+
   rally:
     plugin: python
     python-version: python3
@@ -91,6 +97,7 @@ parts:
 
   rally-openstack:
     # python3 compatibility patches for tempest verifier
+    after: [patches]
     plugin: python
     python-version: python3
     build-packages:
@@ -113,6 +120,11 @@ parts:
     constraints: [upper-constraints.txt]
     stage-packages:
       - git # for tempest repository cloning
+    override-pull: |
+      snapcraftctl pull
+      git config user.email "builder@snapcraft.io"
+      git config user.name "builder@snapcraft.io"
+      git am ${SNAPCRAFT_STAGE}/0001-py3-use-binary-mode-for-opening-image-files.patch
     override-prime: |
       snapcraftctl prime
       echo "Compiling pyc files..."
@@ -121,7 +133,7 @@ parts:
        -x 'testtools|import-zips.py|hg-to-git'
 
   tempest:
-    after: [rally]
+    after: [rally, patches]
     plugin: python
     source: https://github.com/openstack/tempest
     source-type: git
@@ -136,6 +148,11 @@ parts:
     stage:
       - $include-all
       - $exclude-conflicting-files
+    override-pull: |
+      snapcraftctl pull
+      git config user.email "builder@snapcraft.io"
+      git config user.name "builder@snapcraft.io"
+      git am ${SNAPCRAFT_STAGE}/0001-Make-create_user-domain-aware-for-V3CredsClient.patch
     override-prime: |
       snapcraftctl prime
       echo "Compiling pyc files..."
@@ -144,11 +161,19 @@ parts:
        -x testtools
 
   tempest-dump:
-    after: [rally, tempest]
+    after: [rally, tempest, patches]
     plugin: dump
     source: https://github.com/openstack/tempest
     source-type: git
     source-tag: '21.0.0'
+    # do nothing as we override the prime step
+    # and do not need to stage or build anything
+    override-pull:
+      snapcraftctl pull
+      git config user.email "builder@snapcraft.io"
+      git config user.name "builder@snapcraft.io"
+      git am ${SNAPCRAFT_STAGE}/0001-Make-create_user-domain-aware-for-V3CredsClient.patch
+      git tag 21.0.0-patched-for-lp1613819
     override-stage: |
       :
     override-build: |
@@ -158,7 +183,8 @@ parts:
     # target directory, including the hidden dir
     override-prime: |
       rm -fr ${SNAPCRAFT_PRIME}/tempest
-      git clone ${SNAPCRAFT_PART_SRC} ${SNAPCRAFT_PRIME}/tempest
+      git clone -b 21.0.0-patched-for-lp1613819 \
+        ${SNAPCRAFT_PART_SRC} ${SNAPCRAFT_PRIME}/tempest
 
   copy-parts:
     after: [tempest]
@@ -172,12 +198,12 @@ parts:
       - 2018.02-test-list.txt
 
   libc-shm-shim:
-      plugin: nil
-      override-build: |
-          snap download libc-shm-shim --beta
-          unsquashfs -f -d ${SNAPCRAFT_PART_INSTALL} libc-shm-shim_*.snap
-      build-packages:
-          - squashfs-tools
-      stage:
-          - -meta
-          - -snap
+    plugin: nil
+    override-build: |
+      snap download libc-shm-shim --beta
+      unsquashfs -f -d ${SNAPCRAFT_PART_INSTALL} libc-shm-shim_*.snap
+    build-packages:
+      - squashfs-tools
+    stage:
+      - -meta
+      - -snap
