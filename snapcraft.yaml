@@ -161,7 +161,7 @@ parts:
     source-tag: '21.0.0'
     # do nothing as we override the prime step
     # and do not need to stage or build anything
-    override-pull:
+    override-pull: |
       snapcraftctl pull
       git config user.email "builder@snapcraft.io"
       git config user.name "builder@snapcraft.io"
