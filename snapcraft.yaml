@@ -113,6 +113,11 @@ parts:
     constraints: [upper-constraints.txt]
     stage-packages:
       - git # for tempest repository cloning
+    override-pull: |
+      snapcraftctl pull
+      git config user.email "builder@snapcraft.io"
+      git config user.name "builder@snapcraft.io"
+      git am ${SNAPCRAFT_STAGE}/0001-py3-use-binary-mode-for-opening-image-files.patch
     override-prime: |
       snapcraftctl prime
       echo "Compiling pyc files..."
@@ -149,6 +154,14 @@ parts:
     source: https://github.com/openstack/tempest
     source-type: git
     source-tag: '21.0.0'
+    # do nothing as we override the prime step
+    # and do not need to stage or build anything
+    override-pull:
+      snapcraftctl pull
+      git config user.email "builder@snapcraft.io"
+      git config user.name "builder@snapcraft.io"
+      git am ${SNAPCRAFT_STAGE}/0001-Make-create_user-domain-aware-for-V3CredsClient.patch
+      git tag 21.0.0-patched-for-lp1613819
     override-stage: |
       :
     override-build: |
