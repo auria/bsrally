@@ -96,8 +96,6 @@ parts:
        -x testtools
 
   rally-openstack:
-    # python3 compatibility patches for tempest verifier
-    after: [patches]
     plugin: python
     python-version: python3
     build-packages:
@@ -120,11 +118,6 @@ parts:
     constraints: [upper-constraints.txt]
     stage-packages:
       - git # for tempest repository cloning
-    override-pull: |
-      snapcraftctl pull
-      git config user.email "builder@snapcraft.io"
-      git config user.name "builder@snapcraft.io"
-      git am ${SNAPCRAFT_STAGE}/0001-py3-use-binary-mode-for-opening-image-files.patch
     override-prime: |
       snapcraftctl prime
       echo "Compiling pyc files..."
