@@ -200,7 +200,3 @@ parts:
     stage:
       - -meta
       - -snap
-
-layout:
-  /etc/ssl:
-    bind: $SNAP/etc/ssl
